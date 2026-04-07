@@ -1,9 +1,11 @@
 package goredditads
 
 import (
+	"cmp"
 	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"os"
+	"slices"
 
 	"github.com/nikolaydubina/fpmoney"
 )
@@ -21,6 +23,28 @@ type JSONDB struct {
 }
 
 func (db JSONDB) Save(path string) error {
+	// sort slices for stability
+	slices.SortFunc(db.Campaigns, func(a, b CampaignNode) int { return cmp.Compare(string(a.ID), string(b.ID)) })
+	for i := range db.Campaigns {
+		slices.SortFunc(db.Campaigns[i].AdGroups, func(a, b AdGroupNode) int { return cmp.Compare(string(a.ID), string(b.ID)) })
+		for j := range db.Campaigns[i].AdGroups {
+			slices.SortFunc(db.Campaigns[i].AdGroups[j].Ads, func(a, b Ad) int { return cmp.Compare(string(a.ID), string(b.ID)) })
+			if t := db.Campaigns[i].AdGroups[j].Targeting; t != nil {
+				slices.Sort(t.Geolocations)
+				slices.Sort(t.ExcludedGeolocations)
+				slices.Sort(t.Communities)
+				slices.Sort(t.ExcludedCommunities)
+				slices.Sort(t.Keywords)
+				slices.Sort(t.ExcludedKeywords)
+				slices.Sort(t.Interests)
+				slices.Sort(t.ExcludedInterests)
+				slices.Sort(t.CustomAudienceIDs)
+				slices.Sort(t.ExcludedCustomAudienceIDs)
+				slices.Sort(t.Carriers)
+			}
+		}
+	}
+
 	f, err := os.Create(path)
 	if err != nil {
 		return err
