@@ -10,6 +10,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/nikolaydubina/fpmoney"
 )
@@ -107,26 +108,6 @@ func (s RedditHTTPClient) FetchAccessTokenWithCode(ctx context.Context, code, re
 	return res.AccessToken, nil
 }
 
-func (s RedditHTTPClient) do(ctx context.Context, method, url string, body any) (*http.Response, error) {
-	var reqBody io.Reader
-	if body != nil {
-		b, err := json.Marshal(body)
-		if err != nil {
-			return nil, err
-		}
-		reqBody = bytes.NewReader(b)
-	}
-
-	req, err := http.NewRequestWithContext(ctx, method, url, reqBody)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Authorization", "Bearer "+s.Secrets.AppToken)
-	req.Header.Set("Content-Type", "application/json")
-
-	return s.HTTPClient.Do(req)
-}
-
 type pagination struct {
 	NextURL string `json:"next_url"`
 }
@@ -136,15 +117,26 @@ type listResponse[T any] struct {
 	Pagination pagination `json:"pagination"`
 }
 
+func (s RedditHTTPClient) initRequest(req *http.Request) {
+	req.Header.Set("Authorization", "Bearer "+s.Secrets.AppToken)
+	req.Header.Set("Content-Type", "application/json")
+}
+
 func (s RedditHTTPClient) FetchCampaigns(ctx context.Context) ([]Campaign, error) {
 	url := s.Config.BaseURL + "/ad_accounts/" + s.Config.AdAccountID + "/campaigns"
 	var campaigns []Campaign
 	for url != "" {
-		resp, err := s.do(ctx, http.MethodGet, url, nil)
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+		if err != nil {
+			return nil, err
+		}
+		s.initRequest(req)
+		resp, err := s.HTTPClient.Do(req)
 		if err != nil {
 			return nil, err
 		}
 		defer resp.Body.Close()
+
 		if resp.StatusCode != http.StatusOK {
 			body, _ := io.ReadAll(resp.Body)
 			return nil, ErrHTTP{StatusCode: resp.StatusCode, Body: string(body)}
@@ -163,7 +155,12 @@ func (s RedditHTTPClient) FetchAdGroups(ctx context.Context) ([]AdGroup, error) 
 	url := s.Config.BaseURL + "/ad_accounts/" + s.Config.AdAccountID + "/ad_groups"
 	var adGroups []AdGroup
 	for url != "" {
-		resp, err := s.do(ctx, http.MethodGet, url, nil)
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+		if err != nil {
+			return nil, err
+		}
+		s.initRequest(req)
+		resp, err := s.HTTPClient.Do(req)
 		if err != nil {
 			return nil, err
 		}
@@ -186,7 +183,12 @@ func (s RedditHTTPClient) FetchAds(ctx context.Context) ([]Ad, error) {
 	url := s.Config.BaseURL + "/ad_accounts/" + s.Config.AdAccountID + "/ads"
 	var ads []Ad
 	for url != "" {
-		resp, err := s.do(ctx, http.MethodGet, url, nil)
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+		if err != nil {
+			return nil, err
+		}
+		s.initRequest(req)
+		resp, err := s.HTTPClient.Do(req)
 		if err != nil {
 			return nil, err
 		}
@@ -211,7 +213,16 @@ type dataRequest[T any] struct {
 
 func (s RedditHTTPClient) UpdateCampaign(ctx context.Context, c Campaign) error {
 	url := s.Config.BaseURL + "/campaigns/" + string(c.ID)
-	resp, err := s.do(ctx, http.MethodPatch, url, dataRequest[Campaign]{Data: c})
+	b, err := json.Marshal(dataRequest[Campaign]{Data: c})
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPatch, url, bytes.NewReader(b))
+	if err != nil {
+		return err
+	}
+	s.initRequest(req)
+	resp, err := s.HTTPClient.Do(req)
 	if err != nil {
 		return err
 	}
@@ -225,7 +236,16 @@ func (s RedditHTTPClient) UpdateCampaign(ctx context.Context, c Campaign) error 
 
 func (s RedditHTTPClient) UpdateAdGroup(ctx context.Context, ag AdGroup) error {
 	url := s.Config.BaseURL + "/ad_groups/" + string(ag.ID)
-	resp, err := s.do(ctx, http.MethodPatch, url, dataRequest[AdGroup]{Data: ag})
+	b, err := json.Marshal(dataRequest[AdGroup]{Data: ag})
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPatch, url, bytes.NewReader(b))
+	if err != nil {
+		return err
+	}
+	s.initRequest(req)
+	resp, err := s.HTTPClient.Do(req)
 	if err != nil {
 		return err
 	}
@@ -239,7 +259,16 @@ func (s RedditHTTPClient) UpdateAdGroup(ctx context.Context, ag AdGroup) error {
 
 func (s RedditHTTPClient) UpdateAd(ctx context.Context, a Ad) error {
 	url := s.Config.BaseURL + "/ads/" + string(a.ID)
-	resp, err := s.do(ctx, http.MethodPatch, url, dataRequest[Ad]{Data: a})
+	b, err := json.Marshal(dataRequest[Ad]{Data: a})
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPatch, url, bytes.NewReader(b))
+	if err != nil {
+		return err
+	}
+	s.initRequest(req)
+	resp, err := s.HTTPClient.Do(req)
 	if err != nil {
 		return err
 	}
@@ -253,10 +282,16 @@ func (s RedditHTTPClient) UpdateAd(ctx context.Context, a Ad) error {
 
 func (s RedditHTTPClient) FetchAdAccountCurrency(ctx context.Context) (fpmoney.Currency, error) {
 	url := s.Config.BaseURL + "/ad_accounts/" + s.Config.AdAccountID
-	resp, err := s.do(ctx, http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return fpmoney.UndefinedCurrency, err
 	}
+	s.initRequest(req)
+	resp, err := s.HTTPClient.Do(req)
+	if err != nil {
+		return fpmoney.UndefinedCurrency, err
+	}
+
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
@@ -275,10 +310,16 @@ func (s RedditHTTPClient) FetchAdAccountCurrency(ctx context.Context) (fpmoney.C
 
 func (s RedditHTTPClient) FetchPost(ctx context.Context, postID PostID) (Post, error) {
 	url := s.Config.BaseURL + "/posts/" + postID.String()
-	resp, err := s.do(ctx, http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return Post{}, err
 	}
+	s.initRequest(req)
+	resp, err := s.HTTPClient.Do(req)
+	if err != nil {
+		return Post{}, err
+	}
+
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
@@ -291,4 +332,57 @@ func (s RedditHTTPClient) FetchPost(ctx context.Context, postID PostID) (Post, e
 		return Post{}, err
 	}
 	return result.Data, nil
+}
+
+func (s RedditHTTPClient) FetchReport(ctx context.Context, from, until time.Time, breakdowns []ReportBreakdown, fields []ReportField) ([]ReportMetric, error) {
+	type reportRequest struct {
+		StartsAt   string            `json:"starts_at"`
+		EndsAt     string            `json:"ends_at"`
+		Breakdowns []ReportBreakdown `json:"breakdowns"`
+		Fields     []ReportField     `json:"fields"`
+	}
+	type reportData struct {
+		Metrics []ReportMetric `json:"metrics"`
+	}
+	type reportResponse struct {
+		Data       reportData `json:"data"`
+		Pagination pagination `json:"pagination"`
+	}
+
+	nextURL := s.Config.BaseURL + "/ad_accounts/" + s.Config.AdAccountID + "/reports"
+	var all []ReportMetric
+	for nextURL != "" {
+		req := reportRequest{
+			StartsAt:   from.UTC().Format("2006-01-02T00:00:00Z"),
+			EndsAt:     until.UTC().Add(24 * time.Hour).Format("2006-01-02T00:00:00Z"),
+			Breakdowns: breakdowns,
+			Fields:     fields,
+		}
+		b, err := json.Marshal(dataRequest[reportRequest]{Data: req})
+		if err != nil {
+			return nil, err
+		}
+		httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, nextURL, bytes.NewReader(b))
+		if err != nil {
+			return nil, err
+		}
+		s.initRequest(httpReq)
+		resp, err := s.HTTPClient.Do(httpReq)
+		if err != nil {
+			return nil, err
+		}
+
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			body, _ := io.ReadAll(resp.Body)
+			return nil, ErrHTTP{StatusCode: resp.StatusCode, Body: string(body)}
+		}
+		var result reportResponse
+		if err := json.UnmarshalRead(resp.Body, &result); err != nil {
+			return nil, err
+		}
+		all = append(all, result.Data.Metrics...)
+		nextURL = result.Pagination.NextURL
+	}
+	return all, nil
 }

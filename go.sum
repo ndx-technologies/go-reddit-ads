@@ -1,3 +1,5 @@
+github.com/ndx-technologies/fmtx v0.2.2 h1:0BkbcLalqDkNRI8kDIy7NJy4b2LbtmDL4uJQvtmN3LE=
+github.com/ndx-technologies/fmtx v0.2.2/go.mod h1:k105R4/pway3ik0IXkprO/jWmZXb7ZKnUoJZgZsgIpk=
 github.com/ndx-technologies/jsonx v0.1.1 h1:Y3L0hx8Uc/rMEzZCPcjKi9JoM30+ekPNmzdszjJkV0A=
 github.com/ndx-technologies/jsonx v0.1.1/go.mod h1:Zk+UO1QalaOAyJq1mp0ZNollao8Xxu2zSGAL4nyUoEA=
 github.com/nikolaydubina/fpdecimal v0.20.2 h1:geV6ODnGCy4CoiaWHmqjwD94PboF24rSOnp6uisPAfg=

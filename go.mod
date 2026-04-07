@@ -7,4 +7,7 @@ require (
 	github.com/nikolaydubina/fpmoney v1.5.0
 )
 
-require github.com/nikolaydubina/fpdecimal v0.20.2 // indirect
+require (
+	github.com/ndx-technologies/fmtx v0.2.2
+	github.com/nikolaydubina/fpdecimal v0.20.2 // indirect
+)

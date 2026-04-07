@@ -10,6 +10,10 @@ import (
 	cmdapply "github.com/ndx-technologies/go-reddit-ads/cmd/apply"
 	cmdauth "github.com/ndx-technologies/go-reddit-ads/cmd/auth"
 	cmdfetch "github.com/ndx-technologies/go-reddit-ads/cmd/fetch"
+	cmdstatsadgroups "github.com/ndx-technologies/go-reddit-ads/cmd/stats_adgroups"
+	cmdstatsads "github.com/ndx-technologies/go-reddit-ads/cmd/stats_ads"
+	cmdstatscampaigns "github.com/ndx-technologies/go-reddit-ads/cmd/stats_campaigns"
+	cmdtimeline "github.com/ndx-technologies/go-reddit-ads/cmd/timeline"
 )
 
 type CommandInfo struct {
@@ -24,9 +28,13 @@ Use this toolkit to setup your AI-driven Reddit Ads GitOps.
 `
 
 var commands = map[string]CommandInfo{
-	"auth":  {DocShort: cmdauth.DocShort, Run: cmdauth.Run},
-	"fetch": {DocShort: cmdfetch.DocShort, Run: cmdfetch.Run},
-	"apply": {DocShort: cmdapply.DocShort, Run: cmdapply.Run},
+	"auth":            {DocShort: cmdauth.DocShort, Run: cmdauth.Run},
+	"fetch":           {DocShort: cmdfetch.DocShort, Run: cmdfetch.Run},
+	"apply":           {DocShort: cmdapply.DocShort, Run: cmdapply.Run},
+	"stats campaigns": {DocShort: cmdstatscampaigns.DocShort, Run: cmdstatscampaigns.Run},
+	"stats adgroups":  {DocShort: cmdstatsadgroups.DocShort, Run: cmdstatsadgroups.Run},
+	"stats ads":       {DocShort: cmdstatsads.DocShort, Run: cmdstatsads.Run},
+	"timeline":        {DocShort: cmdtimeline.DocShort, Run: cmdtimeline.Run},
 }
 
 func main() {
