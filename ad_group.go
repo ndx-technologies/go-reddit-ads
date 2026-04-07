@@ -1,11 +1,13 @@
 package goredditads
 
+import "slices"
+
 type AdGroupID string
 
 func (s AdGroupID) IsZero() bool { return s == "" }
 
 type AdGroup struct {
-	ID               AdGroupID         `json:"id"`
+	ID               AdGroupID         `json:"id,omitzero"`
 	CampaignID       CampaignID        `json:"campaign_id"`
 	Name             string            `json:"name"`
 	ConfiguredStatus Status            `json:"configured_status,omitempty"`
@@ -18,6 +20,27 @@ type AdGroup struct {
 	StartTime        string            `json:"start_time,omitempty"`
 	EndTime          string            `json:"end_time,omitempty"`
 	Targeting        *AdGroupTargeting `json:"targeting,omitempty"`
+}
+
+func (a AdGroup) IsEqual(b AdGroup) bool {
+	if (a.Targeting == nil) != (b.Targeting == nil) {
+		return false
+	}
+	if a.Targeting != nil && !a.Targeting.IsEqual(*b.Targeting) {
+		return false
+	}
+	return a.ID == b.ID &&
+		a.CampaignID == b.CampaignID &&
+		a.Name == b.Name &&
+		a.ConfiguredStatus == b.ConfiguredStatus &&
+		a.BidType == b.BidType &&
+		a.BidValue == b.BidValue &&
+		a.BidStrategy == b.BidStrategy &&
+		a.GoalType == b.GoalType &&
+		a.GoalValue == b.GoalValue &&
+		a.OptimizationGoal == b.OptimizationGoal &&
+		a.StartTime == b.StartTime &&
+		a.EndTime == b.EndTime
 }
 
 type AdGroupTargeting struct {
@@ -37,6 +60,32 @@ type AdGroupTargeting struct {
 	ExpandTargeting           *bool           `json:"expand_targeting,omitempty"`
 	Gender                    Gender          `json:"gender,omitempty"`
 	Platforms                 []Platform      `json:"platforms,omitempty"`
+}
+
+func (a AdGroupTargeting) IsEqual(b AdGroupTargeting) bool {
+	var expandA, expandB bool
+	if a.ExpandTargeting != nil {
+		expandA = *a.ExpandTargeting
+	}
+	if b.ExpandTargeting != nil {
+		expandB = *b.ExpandTargeting
+	}
+	return slices.Equal(a.Geolocations, b.Geolocations) &&
+		slices.Equal(a.ExcludedGeolocations, b.ExcludedGeolocations) &&
+		slices.Equal(a.Communities, b.Communities) &&
+		slices.Equal(a.ExcludedCommunities, b.ExcludedCommunities) &&
+		slices.Equal(a.Keywords, b.Keywords) &&
+		slices.Equal(a.ExcludedKeywords, b.ExcludedKeywords) &&
+		slices.Equal(a.Interests, b.Interests) &&
+		slices.Equal(a.ExcludedInterests, b.ExcludedInterests) &&
+		slices.Equal(a.CustomAudienceIDs, b.CustomAudienceIDs) &&
+		slices.Equal(a.ExcludedCustomAudienceIDs, b.ExcludedCustomAudienceIDs) &&
+		slices.Equal(a.Carriers, b.Carriers) &&
+		slices.Equal(a.Locations, b.Locations) &&
+		slices.Equal(a.Devices, b.Devices) &&
+		expandA == expandB &&
+		a.Gender == b.Gender &&
+		slices.Equal(a.Platforms, b.Platforms)
 }
 
 type OptimizationGoal string

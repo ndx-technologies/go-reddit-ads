@@ -1,13 +1,15 @@
 package goredditads
 
-import "time"
+import (
+	"time"
+)
 
 type CampaignID string
 
 func (s CampaignID) IsZero() bool { return s == "" }
 
 type Campaign struct {
-	ID                           CampaignID  `json:"id"`
+	ID                           CampaignID  `json:"id,omitzero"`
 	Name                         string      `json:"name"`
 	ConfiguredStatus             Status      `json:"configured_status,omitempty"`
 	Objective                    Objective   `json:"objective,omitempty"`
@@ -20,6 +22,30 @@ type Campaign struct {
 	IsCampaignBudgetOptimization *bool       `json:"is_campaign_budget_optimization,omitempty"`
 	StartTime                    time.Time   `json:"start_time,omitzero"`
 	EndTime                      time.Time   `json:"end_time,omitzero"`
+}
+
+func (a Campaign) IsEqual(b Campaign) bool {
+	var isCBO bool
+	if a.IsCampaignBudgetOptimization != nil {
+		isCBO = *a.IsCampaignBudgetOptimization
+	}
+	var isCBOB bool
+	if b.IsCampaignBudgetOptimization != nil {
+		isCBOB = *b.IsCampaignBudgetOptimization
+	}
+	return a.ID == b.ID &&
+		a.Name == b.Name &&
+		a.ConfiguredStatus == b.ConfiguredStatus &&
+		a.Objective == b.Objective &&
+		a.GoalType == b.GoalType &&
+		a.GoalValue == b.GoalValue &&
+		a.BidStrategy == b.BidStrategy &&
+		a.BidType == b.BidType &&
+		a.BidValue == b.BidValue &&
+		a.SpendCap == b.SpendCap &&
+		isCBO == isCBOB &&
+		a.StartTime.Equal(b.StartTime) &&
+		a.EndTime.Equal(b.EndTime)
 }
 
 type Status string
