@@ -201,8 +201,12 @@ func printStats(w io.StringWriter, showID bool, metrics []goredditads.ReportMetr
 
 				ctrStr := fmtx.DimS("-")
 				if a.impressions > 0 {
-					ctr := float64(a.clicks) / float64(a.impressions)
-					ctrStr = fmtx.ColorizeDist(strconv.FormatFloat(ctr*100, 'f', 2, 64)+"%", ctr, []float64{agCTR * 0.7, agCTR}, []string{fmtx.Red, fmtx.Yellow, fmtx.Green})
+					if a.clicks == 0 {
+						ctrStr = fmtx.RedS("0.00%")
+					} else {
+						ctr := float64(a.clicks) / float64(a.impressions)
+						ctrStr = fmtx.ColorizeDist(strconv.FormatFloat(ctr*100, 'f', 2, 64)+"%", ctr, []float64{agCTR * 0.7, agCTR}, []string{fmtx.Red, fmtx.Yellow, fmtx.Green})
+					}
 				}
 
 				z, zOK := goredditads.CTRZScore(a.clicks, a.impressions, agAgg.clicks, agAgg.impressions)
