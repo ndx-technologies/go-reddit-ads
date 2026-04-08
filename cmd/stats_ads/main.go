@@ -217,7 +217,7 @@ func printStats(w io.StringWriter, showID bool, metrics []goredditads.ReportMetr
 
 				row := []string{
 					name,
-					strconv.FormatInt(a.impressions, 11),
+					strconv.FormatInt(a.impressions, 10),
 					fmtx.VolumeBar(a.impressions, maxImpressions, 10),
 					strconv.FormatInt(a.clicks, 10),
 					ctrStr,
