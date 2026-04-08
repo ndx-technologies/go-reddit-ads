@@ -189,10 +189,6 @@ func printStats(w io.StringWriter, showID bool, metrics []goredditads.ReportMetr
 
 			for _, aid := range adList {
 				a := byAd[aid]
-				ctr := float64(0)
-				if a.impressions > 0 {
-					ctr = float64(a.clicks) / float64(a.impressions)
-				}
 				ecpm := float64(0)
 				if a.n > 0 {
 					ecpm = a.ecpmMicro / float64(a.n) / 1_000_000
@@ -203,8 +199,9 @@ func printStats(w io.StringWriter, showID bool, metrics []goredditads.ReportMetr
 				}
 				spend := float64(a.spendMicro) / 1_000_000
 
-				ctrStr := fmtx.DimS(strconv.FormatFloat(ctr*100, 'f', 2, 64) + "%")
-				if a.clicks > 0 {
+				ctrStr := fmtx.DimS("-")
+				if a.impressions > 0 {
+					ctr := float64(a.clicks) / float64(a.impressions)
 					ctrStr = fmtx.ColorizeDist(strconv.FormatFloat(ctr*100, 'f', 2, 64)+"%", ctr, []float64{agCTR * 0.7, agCTR}, []string{fmtx.Red, fmtx.Yellow, fmtx.Green})
 				}
 
