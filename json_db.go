@@ -11,11 +11,13 @@ import (
 )
 
 type JSONDB struct {
-	AppID          string           `json:"app_id"`
-	AdAccountID    string           `json:"ad_account_id"`
-	AppRedirectURI string           `json:"app_redirect_uri"`
-	Currency       fpmoney.Currency `json:"currency,omitempty"`
-	Campaigns      []CampaignNode   `json:"campaigns"`
+	AppID               string           `json:"app_id"`
+	AdAccountID         string           `json:"ad_account_id"`
+	AppRedirectURI      string           `json:"app_redirect_uri"`
+	Currency            fpmoney.Currency `json:"currency,omitempty"`
+	ExcludedCommunities []string         `json:"excluded_communities,omitempty"`
+	ExcludedKeywords    []string         `json:"excluded_keywords,omitempty"`
+	Campaigns           []CampaignNode   `json:"campaigns"`
 
 	campaignByID map[CampaignID]*CampaignNode
 	adGroupByID  map[AdGroupID]*AdGroupNode
@@ -24,6 +26,8 @@ type JSONDB struct {
 
 func (db JSONDB) Save(path string) error {
 	// sort slices for stability
+	slices.Sort(db.ExcludedCommunities)
+	slices.Sort(db.ExcludedKeywords)
 	slices.SortFunc(db.Campaigns, func(a, b CampaignNode) int { return cmp.Compare(string(a.ID), string(b.ID)) })
 	for i := range db.Campaigns {
 		slices.SortFunc(db.Campaigns[i].AdGroups, func(a, b AdGroupNode) int { return cmp.Compare(string(a.ID), string(b.ID)) })

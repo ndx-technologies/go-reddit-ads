@@ -59,11 +59,13 @@ func Run(args []string) {
 		}
 	}
 
-	currency, err := client.FetchAdAccountCurrency(ctx)
+	account, err := client.FetchAdAccount(ctx)
 	if err != nil {
-		log.Fatalf("fetching ad account currency: %v", err)
+		log.Fatalf("fetching ad account: %v", err)
 	}
-	db.Currency = currency
+	db.Currency = account.Currency
+	db.ExcludedCommunities = account.ExcludedCommunities
+	db.ExcludedKeywords = account.ExcludedKeywords
 
 	campaigns, err := client.FetchCampaigns(ctx)
 	if err != nil {

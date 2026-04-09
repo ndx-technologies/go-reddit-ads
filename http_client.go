@@ -280,32 +280,35 @@ func (s RedditHTTPClient) UpdateAd(ctx context.Context, a Ad) error {
 	return nil
 }
 
-func (s RedditHTTPClient) FetchAdAccountCurrency(ctx context.Context) (fpmoney.Currency, error) {
+type AdAccount struct {
+	Currency            fpmoney.Currency `json:"currency"`
+	ExcludedCommunities []string         `json:"excluded_communities,omitempty"`
+	ExcludedKeywords    []string         `json:"excluded_keywords,omitempty"`
+}
+
+func (s RedditHTTPClient) FetchAdAccount(ctx context.Context) (AdAccount, error) {
 	url := s.Config.BaseURL + "/ad_accounts/" + s.Config.AdAccountID
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		return fpmoney.UndefinedCurrency, err
+		return AdAccount{}, err
 	}
 	s.initRequest(req)
 	resp, err := s.HTTPClient.Do(req)
 	if err != nil {
-		return fpmoney.UndefinedCurrency, err
+		return AdAccount{}, err
 	}
-
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return fpmoney.UndefinedCurrency, ErrHTTP{StatusCode: resp.StatusCode, Body: string(body)}
+		return AdAccount{}, ErrHTTP{StatusCode: resp.StatusCode, Body: string(body)}
 	}
 	var result struct {
-		Data struct {
-			Currency fpmoney.Currency `json:"currency"`
-		} `json:"data"`
+		Data AdAccount `json:"data"`
 	}
 	if err := json.UnmarshalRead(resp.Body, &result); err != nil {
-		return result.Data.Currency, err
+		return result.Data, err
 	}
-	return result.Data.Currency, nil
+	return result.Data, nil
 }
 
 func (s RedditHTTPClient) FetchPost(ctx context.Context, postID PostID) (Post, error) {
